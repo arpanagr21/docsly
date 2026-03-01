@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "docsly": {
+      "command": "python3",
+      "args": ["/Users/arpan-zethic/OSS/Docsly/backend/mcp_stdio_wrapper.py"],
+      "env": {
+        "DOCSLY_MCP_URL": "http://localhost:5001",
+        "DOCSLY_MCP_API_KEY": "mcp-secret-key-change-in-production"
+      }
+    }
+  }
+}
