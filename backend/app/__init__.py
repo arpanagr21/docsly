@@ -17,7 +17,12 @@ def create_app(config_class=Config):
     # Initialize extensions
     db.init_app(app)
     jwt.init_app(app)
-    CORS(app, origins=["http://localhost:3000"])
+    
+    # Configure CORS from environment
+    import os
+    cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3005").split(",")
+    cors_origins = [origin.strip() for origin in cors_origins if origin.strip()]
+    CORS(app, origins=cors_origins, supports_credentials=True)
 
     # Health check endpoint
     @app.route("/health")

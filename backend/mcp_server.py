@@ -44,7 +44,7 @@ OAUTH_REDIRECT_ALLOWLIST = [
     for value in os.getenv("OAUTH_REDIRECT_ALLOWLIST", "").split(",")
     if value.strip()
 ]
-OAUTH_ALLOW_ANY_REDIRECT = os.getenv("OAUTH_ALLOW_ANY_REDIRECT", "false").lower() in {"1", "true", "yes"}
+OAUTH_ALLOW_ANY_REDIRECT = os.getenv("OAUTH_ALLOW_ANY_REDIRECT", "true").lower() in {"1", "true", "yes"}
 
 # Reference to main app for database access
 main_app = create_app()
@@ -99,10 +99,10 @@ def _prune_oauth_state() -> None:
 
 
 def _is_redirect_uri_allowed(uri: str) -> bool:
-    if not uri:
-        return False
     if OAUTH_ALLOW_ANY_REDIRECT:
         return True
+    if not uri:
+        return False
     if not OAUTH_REDIRECT_ALLOWLIST:
         # Local test default: allow localhost callbacks if allowlist is not set.
         return uri.startswith("http://localhost:") or uri.startswith("https://localhost:")
@@ -705,8 +705,13 @@ def oauth_authorize():
         scope = request.args.get("scope", OAUTH_DEFAULT_SCOPE)
         code_challenge = request.args.get("code_challenge")
         code_challenge_method = request.args.get("code_challenge_method", "plain")
+        
+        # Debug logging
+        print(f"[OAuth Authorize] response_type={response_type}, client_id={client_id}, redirect_uri={redirect_uri}, scope={scope}")
+        print(f"[OAuth Authorize] OAUTH_ALLOW_ANY_REDIRECT={OAUTH_ALLOW_ANY_REDIRECT}, OAUTH_REDIRECT_ALLOWLIST={OAUTH_REDIRECT_ALLOWLIST}")
 
         if response_type != "code":
+            print(f"[OAuth Authorize] ERROR: Invalid response_type: {response_type}")
             if _is_redirect_uri_allowed(redirect_uri):
                 return redirect(_oauth_error_redirect(redirect_uri, state, "unsupported_response_type", "Only response_type=code is supported"))
             return jsonify({"error": "unsupported_response_type", "error_description": "Only response_type=code is supported"}), 400
@@ -714,13 +719,17 @@ def oauth_authorize():
         # Check for user-specific OAuth client or global client
         oauth_client = _validate_oauth_client(client_id)
         is_global = _is_global_client(client_id)
+        
+        print(f"[OAuth Authorize] oauth_client={oauth_client}, is_global={is_global}")
 
         if not oauth_client and not is_global:
+            print(f"[OAuth Authorize] ERROR: Invalid client_id: {client_id}")
             if _is_redirect_uri_allowed(redirect_uri):
                 return redirect(_oauth_error_redirect(redirect_uri, state, "unauthorized_client", "Invalid client_id"))
             return jsonify({"error": "unauthorized_client", "error_description": "Invalid client_id"}), 401
 
         if not _is_redirect_uri_allowed(redirect_uri):
+            print(f"[OAuth Authorize] ERROR: redirect_uri not allowed: {redirect_uri}")
             return jsonify({"error": "invalid_request", "error_description": "redirect_uri is not allowed"}), 400
 
         code = _issue_auth_code(
@@ -730,6 +739,7 @@ def oauth_authorize():
             code_challenge=code_challenge,
             code_challenge_method=code_challenge_method if code_challenge else None,
         )
+        print(f"[OAuth Authorize] SUCCESS: Issued auth code, redirecting to {redirect_uri}")
         params = {"code": code}
         if state:
             params["state"] = state

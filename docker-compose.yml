@@ -2,7 +2,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "5000:5000"
+      - "5005:5000"
     environment:
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-jwt-secret-key}
@@ -22,7 +22,7 @@ services:
     ports:
       - "3005:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:5000
+      - NEXT_PUBLIC_API_URL=http://localhost:5005
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -40,8 +40,8 @@ services:
       - MCP_API_KEY=${MCP_API_KEY:-mcp-secret-key-change-in-production}
       - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID:-docsly-openai-client}
       - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET:-docsly-openai-secret}
-      - OAUTH_REDIRECT_ALLOWLIST=${OAUTH_REDIRECT_ALLOWLIST:-http://localhost:3000/callback}
-      - OAUTH_ALLOW_ANY_REDIRECT=${OAUTH_ALLOW_ANY_REDIRECT:-false}
+      - OAUTH_REDIRECT_ALLOWLIST=https://chatgpt.com/connector_platform_oauth_redirect,https://chat.openai.com/aip/oauth/callback
+      - OAUTH_ALLOW_ANY_REDIRECT=true
       - MCP_PORT=5001
     volumes:
       - ./backend:/app
