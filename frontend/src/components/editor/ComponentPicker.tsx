@@ -10,13 +10,80 @@ export interface ComponentPickerProps {
   onSelect: (component: Component) => void;
 }
 
+const CORE_COMPONENTS: Component[] = [
+  {
+    id: -1,
+    user_id: null,
+    name: 'row',
+    version: '1',
+    schema: {
+      type: 'object',
+      properties: {
+        columns: { type: 'number', default: 2 },
+        gap: { type: 'string', default: '1rem' },
+        class: { type: 'string' },
+        style: { type: 'string' },
+      },
+    },
+    template: '',
+    is_active: true,
+    is_builtin: true,
+  },
+  {
+    id: -2,
+    user_id: null,
+    name: 'column',
+    version: '1',
+    schema: {
+      type: 'object',
+      properties: {
+        span: { type: 'number', default: 6 },
+        class: { type: 'string' },
+        style: { type: 'string' },
+      },
+    },
+    template: '',
+    is_active: true,
+    is_builtin: true,
+  },
+  {
+    id: -3,
+    user_id: null,
+    name: 'table',
+    version: '1',
+    schema: {
+      type: 'object',
+      properties: {
+        headers: { type: 'array', default: ['Column A', 'Column B'] },
+        rows: { type: 'array', default: [['Value 1', 'Value 2']] },
+        class: { type: 'string' },
+        style: { type: 'string' },
+      },
+    },
+    template: '',
+    is_active: true,
+    is_builtin: true,
+  },
+];
+
 export function ComponentPicker({ selectedComponent, onSelect }: ComponentPickerProps) {
   const { data: components, isLoading, error } = useComponents();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredComponents = components?.filter((component) =>
+  const mergedComponents = (() => {
+    const byName = new Map<string, Component>();
+    for (const component of CORE_COMPONENTS) {
+      byName.set(component.name, component);
+    }
+    for (const component of components || []) {
+      byName.set(component.name, component);
+    }
+    return Array.from(byName.values());
+  })();
+
+  const filteredComponents = mergedComponents.filter((component) =>
     component.name.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  );
 
   if (isLoading) {
     return (
@@ -35,7 +102,7 @@ export function ComponentPicker({ selectedComponent, onSelect }: ComponentPicker
     );
   }
 
-  if (!components || components.length === 0) {
+  if (!mergedComponents || mergedComponents.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
         <Box className="w-12 h-12 mx-auto mb-2 opacity-50" />

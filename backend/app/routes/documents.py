@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, make_response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from pydantic import ValidationError
 
@@ -6,6 +6,7 @@ from app.extensions import db
 from app.models import Document
 from app.schemas import DocumentCreate, DocumentUpdate
 from app.services.renderer import render_document
+from app.services.pdf_engine import render_pdf_from_html
 
 documents_bp = Blueprint("documents", __name__, url_prefix="/api/documents")
 
@@ -114,6 +115,29 @@ def render_document_html(doc_id: int):
     return jsonify({"html": html})
 
 
+@documents_bp.route("/<int:doc_id>/pdf", methods=["GET"])
+@jwt_required()
+def render_document_pdf(doc_id: int):
+    user_id = get_current_user_id()
+    document = Document.query.filter_by(id=doc_id, user_id=user_id).first()
+
+    if not document:
+        return jsonify({"error": "Document not found"}), 404
+
+    try:
+        html = render_document(document.content, user_id)
+        pdf_bytes = render_pdf_from_html(html)
+        filename = f'{document.title or "document"}.pdf'.replace("/", "-")
+
+        response = make_response(pdf_bytes)
+        response.headers["Content-Type"] = "application/pdf"
+        response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+        response.headers["Content-Length"] = str(len(pdf_bytes))
+        return response
+    except Exception as e:
+        return jsonify({"error": f"PDF render failed: {str(e)}"}), 500
+
+
 @documents_bp.route("/preview", methods=["POST"])
 @jwt_required()
 def preview_document_html():
@@ -125,5 +149,35 @@ def preview_document_html():
     if not isinstance(content, dict):
         return jsonify({"error": "content object is required"}), 400
 
-    html = render_document(content, user_id)
-    return jsonify({"html": html})
+    try:
+        html = render_document(content, user_id)
+        return jsonify({"html": html})
+    except Exception as e:
+        return jsonify({"error": f"Preview render failed: {str(e)}"}), 500
+
+
+@documents_bp.route("/preview-pdf", methods=["POST"])
+@jwt_required()
+def preview_document_pdf():
+    """Render unsaved document content to PDF for download."""
+    user_id = get_current_user_id()
+    payload = request.get_json(silent=True) or {}
+    content = payload.get("content")
+    title = payload.get("title", "document")
+
+    if not isinstance(content, dict):
+        return jsonify({"error": "content object is required"}), 400
+
+    try:
+        html = render_document(content, user_id)
+        pdf_bytes = render_pdf_from_html(html)
+        safe_title = str(title or "document").replace("/", "-")
+        filename = f"{safe_title}.pdf"
+
+        response = make_response(pdf_bytes)
+        response.headers["Content-Type"] = "application/pdf"
+        response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+        response.headers["Content-Length"] = str(len(pdf_bytes))
+        return response
+    except Exception as e:
+        return jsonify({"error": f"Preview PDF render failed: {str(e)}"}), 500

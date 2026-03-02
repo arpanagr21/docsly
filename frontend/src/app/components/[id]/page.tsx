@@ -16,7 +16,13 @@ export default function EditComponentPage() {
   const updateComponent = useUpdateComponent();
   const deleteComponent = useDeleteComponent();
 
-  const handleSave = async (data: { name: string; schema: JSONSchema; template: string }) => {
+  const handleSave = async (data: {
+    name: string;
+    schema: JSONSchema;
+    template: string;
+    style_contract: Record<string, unknown>;
+    default_styles: Record<string, unknown>;
+  }) => {
     try {
       await updateComponent.mutateAsync({ id, data });
     } catch (error) {

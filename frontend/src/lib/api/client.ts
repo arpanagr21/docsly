@@ -4,7 +4,7 @@ export class BaseAPI {
   protected baseUrl =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  private getAccessToken(): string | null {
+  protected getAccessToken(): string | null {
     if (typeof window === "undefined") {
       return null;
     }
@@ -72,5 +72,12 @@ export class BaseAPI {
 
   protected async delete<T>(path: string): Promise<T> {
     return this.request<T>(path, { method: "DELETE" });
+  }
+
+  protected async patch<T>(path: string, data?: unknown): Promise<T> {
+    return this.request<T>(path, {
+      method: "PATCH",
+      body: data ? JSON.stringify(data) : undefined,
+    });
   }
 }

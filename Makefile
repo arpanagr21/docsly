@@ -1,4 +1,4 @@
-.PHONY: dev build up down logs
+.PHONY: dev build up down logs reset-db
 
 dev:
 	docker-compose up --build
@@ -20,3 +20,6 @@ backend-shell:
 
 frontend-shell:
 	docker-compose exec frontend sh
+
+reset-db:
+	docker-compose exec backend sh -lc "PYTHONPATH=/app python scripts/reset_db.py"

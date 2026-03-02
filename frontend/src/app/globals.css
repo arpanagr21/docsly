@@ -74,3 +74,134 @@
     @apply bg-background text-foreground;
   }
 }
+
+.docsly-preview,
+.component-preview {
+  color: #111827;
+  line-height: 1.65;
+}
+
+.docsly-preview > *:first-child,
+.component-preview > *:first-child {
+  margin-top: 0;
+}
+
+.docsly-preview h1,
+.docsly-preview h2,
+.docsly-preview h3,
+.docsly-preview h4,
+.component-preview h1,
+.component-preview h2,
+.component-preview h3,
+.component-preview h4 {
+  color: #0f172a;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 1rem 0 0.6rem;
+}
+
+.docsly-preview h1, .component-preview h1 { font-size: 1.875rem; }
+.docsly-preview h2, .component-preview h2 { font-size: 1.5rem; }
+.docsly-preview h3, .component-preview h3 { font-size: 1.25rem; }
+.docsly-preview h4, .component-preview h4 { font-size: 1.1rem; }
+
+.docsly-preview p,
+.component-preview p {
+  margin: 0.55rem 0;
+}
+
+.docsly-preview ul,
+.docsly-preview ol,
+.component-preview ul,
+.component-preview ol {
+  margin: 0.5rem 0 0.8rem 1.25rem;
+}
+
+.docsly-preview li,
+.component-preview li {
+  margin: 0.2rem 0;
+}
+
+.docsly-preview blockquote,
+.component-preview blockquote {
+  margin: 0.75rem 0;
+  padding: 0.6rem 0.85rem;
+  border-left: 4px solid #93c5fd;
+  background: #eff6ff;
+  border-radius: 0.4rem;
+}
+
+.docsly-preview hr,
+.component-preview hr {
+  margin: 0.9rem 0;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+}
+
+.docsly-preview table,
+.component-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.docsly-preview th,
+.docsly-preview td,
+.component-preview th,
+.component-preview td {
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.docsly-preview th,
+.component-preview th {
+  background: #f8fafc;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.docsly-preview .dsl-row,
+.component-preview .dsl-row {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--dsl-row-gap, 1rem);
+  margin: 1rem 0;
+}
+
+.docsly-preview .dsl-column,
+.component-preview .dsl-column {
+  grid-column: span 12 / span 12;
+}
+
+.docsly-preview .dsl-table-wrapper,
+.component-preview .dsl-table-wrapper {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.docsly-preview code,
+.component-preview code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875em;
+  background: #f3f4f6;
+  padding: 0.12rem 0.35rem;
+  border-radius: 0.25rem;
+}
+
+.docsly-preview pre,
+.component-preview pre {
+  margin: 0.8rem 0;
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 0.8rem 0.9rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+}
+
+.docsly-preview pre code,
+.component-preview pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}

@@ -7,9 +7,11 @@ import type { Block } from '@/types/document';
 
 export interface BlockPreviewProps {
   block: Block;
+  minimal?: boolean;
+  maxHeight?: string;
 }
 
-export function BlockPreview({ block }: BlockPreviewProps) {
+export function BlockPreview({ block, minimal = false, maxHeight = '400px' }: BlockPreviewProps) {
   const [html, setHtml] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export function BlockPreview({ block }: BlockPreviewProps) {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [block.type, block.name, block.content, JSON.stringify(block.props)]);
+  }, [block.type, block.name, block.version, block.content, block.inner_markdown, JSON.stringify(block.props)]);
 
   // Empty state
   if (!html && !isLoading && !error) {
@@ -74,6 +76,14 @@ export function BlockPreview({ block }: BlockPreviewProps) {
 
   // Loading state
   if (isLoading) {
+    if (minimal) {
+      return (
+        <div className="flex items-center justify-center py-6 bg-white rounded-lg border border-gray-200">
+          <Loader2 className="w-4 h-4 animate-spin text-blue-500 mr-2" />
+          <span className="text-xs text-gray-500">Rendering...</span>
+        </div>
+      );
+    }
     return (
       <div className="flex items-center justify-center py-8 bg-gray-50 rounded-lg border border-gray-200">
         <Loader2 className="w-5 h-5 animate-spin text-blue-500 mr-2" />
@@ -84,6 +94,13 @@ export function BlockPreview({ block }: BlockPreviewProps) {
 
   // Error state
   if (error) {
+    if (minimal) {
+      return (
+        <div className="py-3 px-3 bg-red-50 rounded-lg border border-red-200 text-red-700 text-xs">
+          {error}
+        </div>
+      );
+    }
     return (
       <div className="flex items-center justify-between py-4 px-4 bg-red-50 rounded-lg border border-red-200">
         <div className="flex items-center gap-2 text-red-600">
@@ -102,6 +119,16 @@ export function BlockPreview({ block }: BlockPreviewProps) {
   }
 
   // Preview content
+  if (minimal) {
+    return (
+      <div
+        className="preview-content docsly-preview bg-white border border-gray-200 rounded-lg p-4 overflow-auto"
+        style={{ maxHeight }}
+        dangerouslySetInnerHTML={{ __html: html || '' }}
+      />
+    );
+  }
+
   return (
     <div className="relative">
       {/* Preview header */}
@@ -121,8 +148,8 @@ export function BlockPreview({ block }: BlockPreviewProps) {
 
       {/* Rendered content */}
       <div
-        className="preview-content bg-white border border-t-0 border-gray-200 rounded-b-lg p-4 overflow-auto"
-        style={{ maxHeight: '400px' }}
+        className="preview-content docsly-preview bg-white border border-t-0 border-gray-200 rounded-b-lg p-4 overflow-auto"
+        style={{ maxHeight }}
         dangerouslySetInnerHTML={{ __html: html || '' }}
       />
     </div>

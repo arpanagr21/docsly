@@ -20,7 +20,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "3000:3000"
+      - "3005:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:5000
     volumes:
@@ -38,6 +38,10 @@ services:
     environment:
       - DATABASE_URL=sqlite:///draftly1.db
       - MCP_API_KEY=${MCP_API_KEY:-mcp-secret-key-change-in-production}
+      - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID:-docsly-openai-client}
+      - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET:-docsly-openai-secret}
+      - OAUTH_REDIRECT_ALLOWLIST=${OAUTH_REDIRECT_ALLOWLIST:-http://localhost:3000/callback}
+      - OAUTH_ALLOW_ANY_REDIRECT=${OAUTH_ALLOW_ANY_REDIRECT:-false}
       - MCP_PORT=5001
     volumes:
       - ./backend:/app

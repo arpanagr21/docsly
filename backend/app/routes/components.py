@@ -6,7 +6,8 @@ from app.extensions import db
 from app.models import Component
 from app.schemas import ComponentCreate, ComponentUpdate
 from app.services.validator import validate_component_schema
-from app.services.renderer import render_block
+from app.services.renderer import render_block, render_component_template_preview_details
+from app.services.component_registry import rebuild_component_registry
 
 components_bp = Blueprint("components", __name__, url_prefix="/api/components")
 
@@ -66,9 +67,12 @@ def create_component():
         version=version,
         schema=data.component_schema,
         template=data.template,
+        style_contract=data.style_contract or {},
+        default_styles=data.default_styles or {},
     )
     db.session.add(component)
     db.session.commit()
+    rebuild_component_registry()
 
     return jsonify({"component": component.to_dict()}), 201
 
@@ -136,9 +140,12 @@ def update_component(comp_id: int):
         version=component.version + 1,
         schema=data.component_schema or component.schema,
         template=data.template or component.template,
+        style_contract=data.style_contract if data.style_contract is not None else component.style_contract,
+        default_styles=data.default_styles if data.default_styles is not None else component.default_styles,
     )
     db.session.add(new_component)
     db.session.commit()
+    rebuild_component_registry()
 
     return jsonify({"component": new_component.to_dict()})
 
@@ -157,6 +164,7 @@ def delete_component(comp_id: int):
 
     component.is_active = False
     db.session.commit()
+    rebuild_component_registry()
     return jsonify({"message": "Component deactivated"})
 
 
@@ -173,5 +181,43 @@ def preview_block():
     try:
         html = render_block(block, user_id)
         return jsonify({"html": html})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@components_bp.route("/preview-template", methods=["POST"])
+@jwt_required()
+def preview_template():
+    payload = request.get_json(silent=True) or {}
+    template = payload.get("template", "")
+    props = payload.get("props", {})
+    component_name = payload.get("name", "preview-component")
+    style_contract = payload.get("style_contract", {})
+    default_styles = payload.get("default_styles", {})
+    theme = payload.get("theme", {})
+
+    if not isinstance(template, str):
+        return jsonify({"error": "template must be a string"}), 400
+    if not isinstance(props, dict):
+        return jsonify({"error": "props must be an object"}), 400
+    if not isinstance(component_name, str):
+        return jsonify({"error": "name must be a string"}), 400
+    if not isinstance(style_contract, dict):
+        return jsonify({"error": "style_contract must be an object"}), 400
+    if not isinstance(default_styles, dict):
+        return jsonify({"error": "default_styles must be an object"}), 400
+    if not isinstance(theme, dict):
+        return jsonify({"error": "theme must be an object"}), 400
+
+    try:
+        preview = render_component_template_preview_details(
+            template=template,
+            props=props,
+            component_name=component_name,
+            style_contract=style_contract,
+            default_styles=default_styles,
+            theme=theme,
+        )
+        return jsonify(preview)
     except Exception as e:
         return jsonify({"error": str(e)}), 500

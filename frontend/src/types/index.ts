@@ -7,10 +7,15 @@ export interface User {
 
 // Block types
 export interface Block {
+  id?: string;
   type: "markdown" | "component";
   content?: string;
   name?: string;
+  version?: number;
+  slot?: string;
   props?: Record<string, unknown>;
+  inner_markdown?: string;
+  children?: Block[];
 }
 
 // Document types
@@ -58,6 +63,8 @@ export interface Component {
   version: string;
   schema: JSONSchema;
   template: string;
+  style_contract?: Record<string, unknown>;
+  default_styles?: Record<string, unknown>;
   is_active: boolean;
   is_builtin: boolean;
   created_at?: string;
@@ -67,12 +74,16 @@ export interface ComponentCreateData {
   name: string;
   schema: JSONSchema;
   template: string;
+  style_contract?: Record<string, unknown>;
+  default_styles?: Record<string, unknown>;
 }
 
 export interface ComponentUpdateData {
   name?: string;
   schema?: JSONSchema;
   template?: string;
+  style_contract?: Record<string, unknown>;
+  default_styles?: Record<string, unknown>;
 }
 
 // Theme types
@@ -162,4 +173,36 @@ export interface RefreshResponse {
 export interface ApiError {
   error: string;
   message?: string;
+}
+
+// OAuth Client types
+export interface OAuthClient {
+  id: number;
+  user_id: number;
+  name: string;
+  client_id: string;
+  client_secret?: string; // Only returned on creation or regeneration
+  scopes: string;
+  is_active: boolean;
+  created_at: string | null;
+  last_used_at: string | null;
+  _notice?: string;
+}
+
+export interface OAuthClientCreateData {
+  name: string;
+  scopes?: string;
+}
+
+export interface OAuthClientUpdateData {
+  name?: string;
+  is_active?: boolean;
+}
+
+export interface OAuthClientsResponse {
+  clients: OAuthClient[];
+}
+
+export interface OAuthClientResponse {
+  client: OAuthClient;
 }

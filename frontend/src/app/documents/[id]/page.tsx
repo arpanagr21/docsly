@@ -8,24 +8,24 @@ import { documentService } from '@/lib/api/services/documents';
 import { useThemes } from '@/hooks/useThemes';
 import { DocumentEditor } from '@/components/editor/DocumentEditor';
 import { DocumentPreview } from '@/components/preview/DocumentPreview';
-import { ArrowLeft, Save, Trash2, Loader2, Eye, Edit3 } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Loader2, Eye, Edit3, FileDown } from 'lucide-react';
 import type { DocumentContent } from '@/types/document';
 
-function blockToMarkdown(block: { type?: string; content?: string; name?: string; props?: Record<string, unknown> }): string {
-  if (block.type === 'markdown') {
-    return block.content || '';
-  }
-
-  if (block.type === 'component' && block.name) {
-    const props = block.props || {};
-    if (Object.keys(props).length > 0) {
-      const payload = JSON.stringify(props).replace(/'/g, "\\'");
-      return `{{< ${block.name} props_json='${payload}' >}}`;
-    }
-    return `{{< ${block.name} >}}`;
-  }
-
-  return '';
+function legacyCoreBlockToMarkdown(block: {
+  type?: string;
+  name?: string;
+  content?: string;
+  props?: Record<string, unknown>;
+}): string {
+  if (block.type === 'markdown') return block.content || '';
+  if (block.type !== 'component' || !block.name) return '';
+  const name = block.name.toLowerCase();
+  if (!['row', 'column', 'table'].includes(name)) return '';
+  const props = block.props || {};
+  const lines = Object.entries(props).map(([key, value]) => (
+    typeof value === 'string' ? `${key}="${value}"` : `${key}=${JSON.stringify(value)}`
+  ));
+  return lines.length > 0 ? `:::${name}\n${lines.join('\n')}\n:::` : `:::${name}\n:::`;
 }
 
 function normalizeDocumentContent(content: DocumentContent): DocumentContent {
@@ -39,10 +39,15 @@ function normalizeDocumentContent(content: DocumentContent): DocumentContent {
   }
 
   const blocks = Array.isArray(content?.blocks) ? content.blocks : [];
+  const markdownFromLegacyBlocks = blocks
+    .map(legacyCoreBlockToMarkdown)
+    .filter((part) => part.trim().length > 0)
+    .join('\n\n');
+
   return {
     version: '2.0',
     theme_id: content?.theme_id ?? null,
-    markdown: blocks.map((block) => blockToMarkdown(block)).filter(Boolean).join('\n\n'),
+    markdown: markdownFromLegacyBlocks,
   };
 }
 
@@ -74,6 +79,7 @@ export default function DocumentEditorPage() {
   const [previewHtml, setPreviewHtml] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   // Initialize state when document loads
   useEffect(() => {
@@ -113,6 +119,19 @@ export default function DocumentEditorPage() {
       router.push('/documents');
     } catch (err) {
       console.error('Failed to delete document:', err);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    setPdfLoading(true);
+    try {
+      if (hasChanges) await documentService.downloadPreviewPdf(content, title || 'document');
+      else await documentService.downloadPdf(documentId, title || 'document');
+    } catch (err) {
+      console.error('Failed to download PDF:', err);
+      alert(err instanceof Error ? err.message : 'Failed to download PDF');
+    } finally {
+      setPdfLoading(false);
     }
   };
 
@@ -189,6 +208,14 @@ export default function DocumentEditorPage() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleDownloadPdf}
+            disabled={pdfLoading}
+            className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            {pdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+            {pdfLoading ? 'Preparing PDF...' : 'Download PDF'}
+          </button>
           <button
             onClick={handleSave}
             disabled={isSaving || !hasChanges}

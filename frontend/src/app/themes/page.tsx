@@ -71,7 +71,7 @@ export default function ThemesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="p-8">
         <div className="max-w-6xl mx-auto">
           <div className="animate-pulse">
             <div className="h-8 w-32 bg-gray-200 rounded mb-6" />
@@ -88,7 +88,7 @@ export default function ThemesPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="p-8">
         <div className="max-w-6xl mx-auto">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
             Failed to load themes. Please try again later.
@@ -102,7 +102,7 @@ export default function ThemesPage() {
   const userThemes = themes?.filter((t) => !t.is_builtin) || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

@@ -11,6 +11,8 @@ class Component(db.Model):
     version = db.Column(db.Integer, nullable=False, default=1)
     schema = db.Column(db.JSON, nullable=False, default=dict)
     template = db.Column(db.Text, nullable=False)
+    style_contract = db.Column(db.JSON, nullable=False, default=dict)
+    default_styles = db.Column(db.JSON, nullable=False, default=dict)
     is_active = db.Column(db.Boolean, default=True)
     is_builtin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -27,6 +29,8 @@ class Component(db.Model):
             "version": self.version,
             "schema": self.schema,
             "template": self.template,
+            "style_contract": self.style_contract,
+            "default_styles": self.default_styles,
             "is_active": self.is_active,
             "is_builtin": self.is_builtin,
             "created_at": self.created_at.isoformat(),

@@ -41,6 +41,17 @@ const DEFAULT_ELEMENT_STYLES = {
   '.dsl-row': { gap: '1rem', margin: '1rem 0' },
   '.dsl-column': { minHeight: '1px' },
 };
+const COMPONENT_STYLES_KEY = '__component_styles';
+const DEFAULT_COMPONENT_STYLES = {
+  heading: {
+    base: { margin: '1rem 0' },
+    slots: { root: { color: '#0f172a' } },
+  },
+  'pricing-table': {
+    base: { margin: '1rem 0' },
+    slots: { root: { border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '0.75rem' } },
+  },
+};
 
 function getElementStyles(variables: ThemeVariables): Record<string, unknown> {
   const value = variables[ELEMENT_STYLES_KEY];
@@ -48,6 +59,14 @@ function getElementStyles(variables: ThemeVariables): Record<string, unknown> {
     return value as Record<string, unknown>;
   }
   return DEFAULT_ELEMENT_STYLES;
+}
+
+function getComponentStyles(variables: ThemeVariables): Record<string, unknown> {
+  const value = variables[COMPONENT_STYLES_KEY];
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return DEFAULT_COMPONENT_STYLES;
 }
 
 export function ThemeEditor({ theme, onSave, isLoading = false }: ThemeEditorProps) {
@@ -58,7 +77,11 @@ export function ThemeEditor({ theme, onSave, isLoading = false }: ThemeEditorPro
   const [elementStylesText, setElementStylesText] = useState(
     JSON.stringify(getElementStyles(theme?.variables || DEFAULT_VARIABLES), null, 2)
   );
+  const [componentStylesText, setComponentStylesText] = useState(
+    JSON.stringify(getComponentStyles(theme?.variables || DEFAULT_VARIABLES), null, 2)
+  );
   const [elementStylesError, setElementStylesError] = useState<string | null>(null);
+  const [componentStylesError, setComponentStylesError] = useState<string | null>(null);
   const [isDefault, setIsDefault] = useState(theme?.is_default || false);
 
   const updateVariable = useCallback((key: string, value: string) => {
@@ -77,20 +100,34 @@ export function ThemeEditor({ theme, onSave, isLoading = false }: ThemeEditorPro
       e.preventDefault();
       try {
         const parsedStyles = JSON.parse(elementStylesText);
+        const parsedComponentStyles = JSON.parse(componentStylesText);
         setElementStylesError(null);
+        setComponentStylesError(null);
         onSave({
           name,
           variables: {
             ...variables,
             [ELEMENT_STYLES_KEY]: parsedStyles,
+            [COMPONENT_STYLES_KEY]: parsedComponentStyles,
           },
           is_default: isDefault,
         });
       } catch {
-        setElementStylesError('Element styles must be valid JSON');
+        try {
+          JSON.parse(elementStylesText);
+          setElementStylesError(null);
+        } catch {
+          setElementStylesError('Element styles must be valid JSON');
+        }
+        try {
+          JSON.parse(componentStylesText);
+          setComponentStylesError(null);
+        } catch {
+          setComponentStylesError('Component styles must be valid JSON');
+        }
       }
     },
-    [name, variables, elementStylesText, isDefault, onSave]
+    [name, variables, elementStylesText, componentStylesText, isDefault, onSave]
   );
 
   const isReadOnly = theme?.is_builtin || false;
@@ -193,6 +230,25 @@ export function ThemeEditor({ theme, onSave, isLoading = false }: ThemeEditorPro
           id="element-styles"
           value={elementStylesText}
           onChange={(e) => setElementStylesText(e.target.value)}
+          disabled={isReadOnly}
+          className="w-full min-h-[220px] px-3 py-2 border border-gray-300 rounded-md shadow-sm font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="component-styles" className="block text-sm font-medium text-gray-700 mb-1">
+          Component Style Overrides (centralized)
+        </label>
+        <p className="text-xs text-gray-500 mb-2">
+          Override component base/slot styles by component name.
+        </p>
+        {componentStylesError && (
+          <p className="text-sm text-red-600 mb-2">{componentStylesError}</p>
+        )}
+        <textarea
+          id="component-styles"
+          value={componentStylesText}
+          onChange={(e) => setComponentStylesText(e.target.value)}
           disabled={isReadOnly}
           className="w-full min-h-[220px] px-3 py-2 border border-gray-300 rounded-md shadow-sm font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
         />

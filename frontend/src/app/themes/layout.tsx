@@ -31,7 +31,7 @@ function NavItem({ href, icon, label, isActive }: NavItemProps) {
   );
 }
 
-export default function DocumentsLayout({
+export default function ThemesLayout({
   children,
 }: {
   children: React.ReactNode;

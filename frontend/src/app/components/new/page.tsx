@@ -10,7 +10,13 @@ export default function NewComponentPage() {
   const router = useRouter();
   const createComponent = useCreateComponent();
 
-  const handleSave = async (data: { name: string; schema: JSONSchema; template: string }) => {
+  const handleSave = async (data: {
+    name: string;
+    schema: JSONSchema;
+    template: string;
+    style_contract: Record<string, unknown>;
+    default_styles: Record<string, unknown>;
+  }) => {
     try {
       const result = await createComponent.mutateAsync(data);
       router.push(`/components/${result.component.id}`);

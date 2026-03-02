@@ -28,6 +28,8 @@ class ComponentCreate(BaseModel):
     name: str
     component_schema: dict = Field(alias="schema")
     template: str
+    style_contract: Optional[dict] = None
+    default_styles: Optional[dict] = None
 
     model_config = {"populate_by_name": True}
 
@@ -35,6 +37,8 @@ class ComponentCreate(BaseModel):
 class ComponentUpdate(BaseModel):
     component_schema: Optional[dict] = Field(default=None, alias="schema")
     template: Optional[str] = None
+    style_contract: Optional[dict] = None
+    default_styles: Optional[dict] = None
 
     model_config = {"populate_by_name": True}
 
