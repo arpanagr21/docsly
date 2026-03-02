@@ -6,7 +6,7 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-jwt-secret-key}
-      - DATABASE_URL=sqlite:///draftly1.db
+      - DATABASE_URL=sqlite:///docsly1.db
     volumes:
       - ./backend:/app
       - backend-data:/app/instance
@@ -36,7 +36,7 @@ services:
     ports:
       - "5001:5001"
     environment:
-      - DATABASE_URL=sqlite:///draftly1.db
+      - DATABASE_URL=sqlite:///docsly1.db
       - MCP_API_KEY=${MCP_API_KEY:-mcp-secret-key-change-in-production}
       - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID:-docsly-openai-client}
       - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET:-docsly-openai-secret}

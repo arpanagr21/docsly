@@ -48,7 +48,7 @@ export default function RegisterPage() {
         Create an account
       </h1>
       <p className="text-sm text-gray-600 text-center mb-8">
-        Get started with Draftly today
+        Get started with Docsly today
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
